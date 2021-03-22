@@ -11,4 +11,4 @@ For comments and feedback, please write to me: utpalkumar50@gmail.com
 
 ## How to use?
 
-<iframe width="420" height="315" src="https://youtu.be/4LkdwBZASE0autoplay=1&mute=1"> </iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/4LkdwBZASE0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
