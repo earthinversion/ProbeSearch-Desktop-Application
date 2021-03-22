@@ -1,6 +1,9 @@
 ## Probe Search
 
--   Windows executable included `ProbeSearchWindows`
+-   Download Windows executable [`ProbeSearchWindows`](https://drive.google.com/file/d/1N8NBgGfMq4hsjp6-nC60fwW7fa6lDsDo/view?usp=sharing)
+
+    
+
 -   Read fasta file and search for the predefined probe with maximum of 5 differences
 
 For comments and feedback, please write to me: utpalkumar50@gmail.com
