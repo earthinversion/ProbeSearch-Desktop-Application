@@ -4,7 +4,7 @@
 
 For comments and feedback, please write to me: utpalkumar50@gmail.com
 
-<img src="../../GoogleDrive/earthinversion/images/Screen Shot 2021-03-22 at 7.53.52 PM.png" style="zoom:80%;" />
+<img src="docs/Screenshot.png" style="zoom:80%;" />
 
 
 
