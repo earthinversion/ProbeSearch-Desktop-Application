@@ -18,4 +18,4 @@ For comments and feedback, please write to me: utpalkumar50@gmail.com
 
 ## How to use?
 
-<iframe width="420" height="315" src="https://youtu.be/4LkdwBZASE0autoplay=1&mute=1"> </iframe>
+Video Link: https://youtu.be/4LkdwBZASE0
