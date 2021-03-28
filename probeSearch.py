@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from io import StringIO
-from support import getProbePattern
+# from support import getProbePattern
 from xml.sax import saxutils as su
 from Bio import SeqIO
 import pandas as pd
@@ -210,6 +210,14 @@ class MainWindow(QMainWindow):
                 # self.progressBar.hide()
             else:
                 # self.progressBar.show()
+                try:
+                    allowedMismatch = int(self.spinBox_nmismatch.value())
+                except:
+                    allowedMismatch = 5
+                    self.statusBar.showMessage(
+                        "Number of allowed mismatch set to 5", 5000)
+                self.totalSequences = None
+                self.mismatchCountDict = None
                 self.progressBar.setValue(0)
                 self.plainTextEdit.clear()
                 try:
@@ -218,13 +226,17 @@ class MainWindow(QMainWindow):
                     self.lastruncmd = self.selCmd
 
                     self.worker1 = WorkerThread_find(
-                        self.sequences, self.lengthSeqs, probeName)
+                        self.sequences, self.lengthSeqs, probeName, allowedMismatch=allowedMismatch+1)
                     self.worker1.start()
                     self.worker1.finished.connect(self.evt_worker_finished)
                     self.worker1.update_progress.connect(
                         self.evt_update_progress)
                     self.worker1.update_plainTextEdit.connect(
                         self.evt_update_plaintextedit)
+                    self.worker1.update_mismatch.connect(
+                        self.evt_update_mismatch)
+                    self.worker1.update_total_records.connect(
+                        self.evt_update_total_rec)
 
                 except Exception as err:
                     self.plainTextEdit.insertPlainText(err)
@@ -244,6 +256,12 @@ class MainWindow(QMainWindow):
 
     def evt_update_progress(self, val):
         self.progressBar.setValue(val)
+
+    def evt_update_mismatch(self, dictval):
+        self.mismatchCountDict = dictval
+
+    def evt_update_total_rec(self, val):
+        self.totalSequences = val
 
     def evt_update_plaintextedit(self, val):
         self.plainTextEdit.appendPlainText(
@@ -313,6 +331,13 @@ class MainWindow(QMainWindow):
                 if fileName:
                     file = open(fileName, 'w')
                     file.write(html)
+                    file.write("\n")
+                    file.write(
+                        f"Total Number of sequences: {self.totalSequences}<br>")
+                    spacing = "&nbsp;"*4
+                    for key, val in self.mismatchCountDict.items():
+                        file.write(
+                            f"{spacing}Number of sequences with {key} mismatch: {val}<br>")
                     file.close()
                     self.statusBar.setStyleSheet("color: green")
                     self.statusBar.showMessage(
@@ -335,22 +360,31 @@ class MainWindow(QMainWindow):
 class WorkerThread_find(QThread):
     update_progress = pyqtSignal(int)
     update_plainTextEdit = pyqtSignal(str)
+    update_mismatch = pyqtSignal(dict)
+    update_total_records = pyqtSignal(int)
 
-    def __init__(self, sequences, lengthSeqs, probeName):
+    def __init__(self, sequences, lengthSeqs, probeName, allowedMismatch=5):
         super().__init__()
         self.sequences = sequences
         self.lengthSeqs = lengthSeqs
         self.probeName = probeName
+        # get the sequence from the yml file
         seq_to_search = prob_primer_seqs_dict[self.probeName]
         self.seq_to_search = seq_to_search
+        if allowedMismatch < len(self.seq_to_search):
+            self.allowedMismatch = allowedMismatch
+        else:
+            self.allowedMismatch = len(self.seq_to_search)
         self.records = list(self.sequences)
-        self.update_progress.emit(0)
-        self.textToSend = f"genome,seq,Mismatch,misMatchLocs\n"
+        self.misMatchCounts = {}
 
-        self.update_plainTextEdit.emit(self.textToSend)
+        self.update_progress.emit(0)
 
     def run(self):
         global appDir
+        self.textToSend = f"genome,seq,Mismatch,misMatchLocs\n"
+
+        self.update_plainTextEdit.emit(self.textToSend)
 
         results_list = []
         count = 0
@@ -360,11 +394,12 @@ class WorkerThread_find(QThread):
             recid = record.id
             lenrecSeq = len(recseq)
             ratioN = recseq.count('N')/lenrecSeq * 100
-            if ratioN > 1:
+            if ratioN > 1:  # ignore the record if the percent of N is greater than 1
                 # print(f"N ratio is high! {ratioN}%")
                 continue
 
-            match = regex.search(f"({self.seq_to_search})"+"{s<5}", recseq)
+            match = regex.search(
+                f"({self.seq_to_search})"+"{s<"+f"{self.allowedMismatch}"+"}", recseq)
 
             if match:
                 match_span = f"{match.span()[0]+1}-{match.span()[1]}"
@@ -389,15 +424,31 @@ class WorkerThread_find(QThread):
                 continue
             self.update_progress.emit(
                 int(round(recIdx/self.lengthSeqs*100)))
+        self.totalSequences = count  # total number of sequences
+        self.update_plainTextEdit.emit(
+            "---")
+        self.update_plainTextEdit.emit(
+            f"Total number of records analyzed: {self.totalSequences}")
 
         dff = pd.DataFrame(results_list)
+        try:
+
+            for ii in range(self.allowedMismatch):
+                totmismatch = (dff['Mismatch'] == ii).sum()
+                self.misMatchCounts[f'{ii}'] = totmismatch
+                self.update_plainTextEdit.emit(
+                    f"Number of sequences with {ii} mismatch: {totmismatch}")
+            self.update_mismatch.emit(self.misMatchCounts)
+            self.update_total_records.emit(self.totalSequences)
+        except:
+            pass
         filename = os.path.join(appDir, f'analysis_results.csv')
         dff.to_csv(filename, index=False)
 
-    def getPattern(self):
-        # Create pattern to search
-        pattern = getProbePattern(self.probeName, self.seq_to_search)
-        return pattern
+    # def getPattern(self):
+    #     # Create pattern to search
+    #     pattern = getProbePattern(self.probeName, self.seq_to_search)
+    #     return pattern
 
     def get_mismatch_idx(self, w1, w2, numMismatch=999):
         idxs = []
