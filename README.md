@@ -1,10 +1,14 @@
 ## Probe Search
 
--   Download Windows executable [`ProbeSearchWindows`](https://drive.google.com/file/d/1N8NBgGfMq4hsjp6-nC60fwW7fa6lDsDo/view?usp=sharing)
-
-    
-
+-   Windows executable included `ProbeSearchWindows`
 -   Read fasta file and search for the predefined probe with maximum of 5 differences
+
+### How to install the Windows executable
+
+1.  Download the zip file from the above link
+2.  Uncompress it in your desired folder
+3.  Look for the exe file - `ProbeSearch.exe` with the icon of magnifying glass
+4.  Make a shortcut of that file and copy it to your desktop for easy access
 
 For comments and feedback, please write to me: utpalkumar50@gmail.com
 
@@ -14,8 +18,4 @@ For comments and feedback, please write to me: utpalkumar50@gmail.com
 
 ## How to use?
 
-[![How to use?](docs/Screenshot.png)](https://www.youtube.com/embed/4LkdwBZASE0 "Probe Search")
-
-
-
-Video demo: https://www.youtube.com/embed/4LkdwBZASE0
+<iframe width="420" height="315" src="https://youtu.be/4LkdwBZASE0autoplay=1&mute=1"> </iframe>
